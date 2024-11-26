@@ -12,6 +12,7 @@ import { SdkBanner } from '@/components/workflow-editor/steps/sdk-banner';
 import { useStep } from '@/components/workflow-editor/steps/use-step';
 import { EXCLUDED_EDITOR_TYPES } from '@/utils/constants';
 import { ConfigureInAppStepTemplate } from '@/components/workflow-editor/steps/in-app/configure-in-app-step-template';
+import { ConfigureEmailStepTemplate } from '@/components/workflow-editor/steps/email/configure-email-step-template';
 
 export const ConfigureStepContent = () => {
   const { step } = useStep();
@@ -23,6 +24,10 @@ export const ConfigureStepContent = () => {
 
   if (step?.type === StepTypeEnum.IN_APP) {
     return <ConfigureInAppStepTemplate step={step} issue={firstError} />;
+  }
+
+  if (step?.type === StepTypeEnum.EMAIL) {
+    return <ConfigureEmailStepTemplate step={step} issue={firstError} />;
   }
 
   return (

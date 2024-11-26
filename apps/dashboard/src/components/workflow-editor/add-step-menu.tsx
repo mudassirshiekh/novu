@@ -8,6 +8,7 @@ import { Badge } from '../primitives/badge';
 import { cn } from '@/utils/ui';
 import { StepTypeEnum } from '@/utils/enums';
 import { STEP_TYPE_TO_COLOR } from '@/utils/color';
+import { EMAIL_DELAY_DIGEST_ENABLED } from '@/config';
 
 const MenuGroup = ({ children }: { children: ReactNode }) => {
   return <div className="flex flex-col">{children}</div>;
@@ -104,7 +105,18 @@ export const AddStepMenu = ({
             <MenuGroup>
               <MenuTitle>Channels</MenuTitle>
               <MenuItemsGroup>
-                <MenuItem stepType={StepTypeEnum.EMAIL}>Email</MenuItem>
+                <MenuItem
+                  stepType={StepTypeEnum.EMAIL}
+                  disabled={!EMAIL_DELAY_DIGEST_ENABLED}
+                  onClick={() => {
+                    if (!EMAIL_DELAY_DIGEST_ENABLED) {
+                      return;
+                    }
+                    handleMenuItemClick(StepTypeEnum.EMAIL);
+                  }}
+                >
+                  Email
+                </MenuItem>
                 <MenuItem
                   stepType={StepTypeEnum.IN_APP}
                   disabled={false}

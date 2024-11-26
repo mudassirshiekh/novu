@@ -16,8 +16,15 @@ import { StepSkeleton } from './step-skeleton';
 import { StepEditorProvider } from './step-editor-provider';
 import { useStepEditorContext } from './hooks';
 import { useWorkflowEditorContext } from '../hooks';
+import { StepTypeEnum } from '@novu/shared';
+import { cn } from '@/utils/ui';
 
 const transitionSetting = { ease: [0.29, 0.83, 0.57, 0.99], duration: 0.4 };
+
+const stepTypeToClassname = {
+  [StepTypeEnum.IN_APP]: 'sm:max-w-[600px]',
+  [StepTypeEnum.EMAIL]: 'sm:max-w-[800px]',
+} as Record<string, string>;
 
 const EditStepSidebarInternal = () => {
   const navigate = useNavigate();
@@ -60,9 +67,10 @@ const EditStepSidebarInternal = () => {
                 x: '100%',
               }}
               transition={transitionSetting}
-              className={
-                'bg-background fixed inset-y-0 right-0 z-50 flex h-full w-3/4 flex-col border-l shadow-lg outline-none sm:max-w-[600px]'
-              }
+              className={cn(
+                'bg-background fixed inset-y-0 right-0 z-50 flex h-full w-3/4 flex-col border-l shadow-lg outline-none sm:max-w-[600px]',
+                step?.type ? stepTypeToClassname[step.type] : undefined
+              )}
             >
               <VisuallyHidden>
                 <SheetTitle />
