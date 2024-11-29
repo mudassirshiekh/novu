@@ -65,20 +65,21 @@ export class NotificationsController {
       subscribersQuery = Array.isArray(query.subscriberIds) ? query.subscriberIds : [query.subscriberIds];
     }
 
-    return this.getActivityFeedUsecase.execute(
-      GetActivityFeedCommand.create({
-        page: query.page ? Number(query.page) : 0,
-        organizationId: user.organizationId,
-        environmentId: user.environmentId,
-        userId: user._id,
-        channels: channelsQuery,
-        templates: templatesQuery,
-        emails: emailsQuery,
-        search: query.search,
-        subscriberIds: subscribersQuery,
-        transactionId: query.transactionId,
-      })
-    );
+    const command = GetActivityFeedCommand.create({
+      page: query.page ? Number(query.page) : 0,
+      organizationId: user.organizationId,
+      environmentId: user.environmentId,
+      userId: user._id,
+      channels: channelsQuery,
+      templates: templatesQuery,
+      emails: emailsQuery,
+      search: query.search,
+      subscriberIds: subscribersQuery,
+      transactionId: query.transactionId,
+    });
+    console.log('command', command);
+
+    return this.getActivityFeedUsecase.execute(command);
   }
 
   @ApiResponse(ActivityStatsResponseDto)
