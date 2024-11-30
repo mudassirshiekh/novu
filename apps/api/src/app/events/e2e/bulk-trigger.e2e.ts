@@ -3,11 +3,8 @@ import { MessageRepository, NotificationRepository, NotificationTemplateEntity, 
 import { SubscribersService, UserSession } from '@novu/testing';
 import { ChannelTypeEnum, StepTypeEnum } from '@novu/shared';
 import { Novu } from '@novu/api';
-// eslint-disable-next-line no-restricted-imports
-import { NovuCore } from '@novu/api/core';
-// eslint-disable-next-line no-restricted-imports
+import type { NovuCore } from '@novu/api/core';
 import { triggerBulk } from '@novu/api/funcs/triggerBulk';
-// eslint-disable-next-line no-restricted-imports
 import { TriggerEventRequestDto } from '@novu/api/models/components';
 import { z } from 'zod';
 import { handleSdkError, initNovuClassSdk, initNovuFunctionSdk } from '../../shared/helpers/e2e/sdk/e2e-sdk.helper';

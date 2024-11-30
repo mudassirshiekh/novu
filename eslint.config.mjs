@@ -45,6 +45,7 @@ const noRestrictedImportsMultiLevelNovuPattern = {
     // These packages have legitimate exports 1 path part below the root level
     // This flatMap logic ignores the path 1 below the root level and prevents deeper imports.
     ...['framework', 'js', 'novui'].flatMap((pkg) => [`!@novu/${pkg}/**/*`, `@novu/${pkg}/*/**/*`]),
+    ...['api'].flatMap((pkg) => [`!@novu/${pkg}/**/*`, `@novu/${pkg}/*/**/*`, `@novu/${pkg}/*/**/*`]),
   ],
   message:
     "Please import only from the root package entry point. For example, use 'import { Client } from '@novu/node';' instead of 'import { Client } from '@novu/node/src';'",
