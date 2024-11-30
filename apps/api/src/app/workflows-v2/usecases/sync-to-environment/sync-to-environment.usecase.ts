@@ -52,7 +52,7 @@ export class SyncToEnvironmentUseCase {
       UpsertWorkflowCommand.create({
         user: { ...command.user, environmentId: command.targetEnvironmentId },
         identifierOrInternalId: targetWorkflow?._id,
-        upsertWorkflowData: workflowDto,
+        workflowDto,
       })
     );
   }

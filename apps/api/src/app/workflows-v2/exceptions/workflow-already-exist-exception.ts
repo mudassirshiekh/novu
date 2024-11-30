@@ -5,7 +5,7 @@ export class WorkflowAlreadyExistException extends BadRequestException {
   constructor(command: UpsertWorkflowCommand) {
     super({
       message: 'Workflow with the same name already exists',
-      workflowName: command.upsertWorkflowData.name,
+      workflowName: command.workflowDto.name,
       environmentId: command.user.environmentId,
     });
   }

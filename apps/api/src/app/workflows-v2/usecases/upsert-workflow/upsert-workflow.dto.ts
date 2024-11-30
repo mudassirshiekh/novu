@@ -15,7 +15,7 @@ import { WorkflowCreationSourceEnum } from '@novu/shared';
 import { UpsertStepData } from './upsert-step.data';
 import { PreferencesRequestUpsertData } from './preferences-request-upsert.data';
 
-export class UpsertWorkflowData {
+export class UpsertWorkflowDto {
   @IsString()
   @IsOptional()
   workflowId?: string;
