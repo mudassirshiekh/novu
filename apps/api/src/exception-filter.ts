@@ -7,11 +7,6 @@ import { ZodError } from 'zod';
 import { InternalServerErrorException } from '@nestjs/common/exceptions/internal-server-error.exception';
 import { ProcessBulkTriggerCommand } from './app/events/usecases/process-bulk-trigger';
 
-class ResponseMetadata {
-  status: number;
-  message: string | object | Object;
-}
-
 export class AllExceptionsFilter implements ExceptionFilter {
   constructor(private readonly logger: PinoLogger) {}
   catch(exception: unknown, host: ArgumentsHost) {
@@ -39,35 +34,18 @@ export class AllExceptionsFilter implements ExceptionFilter {
     return this.build500Error(exception, responseBody);
   }
 
-  private build500Error(
-    exception: unknown,
-    responseBody: {
-      path: string;
-      message: string | object | Object;
-      statusCode: number;
-      timestamp: string;
-    }
-  ) {
+  private build500Error(exception: unknown, responseBody: ErrorResponseBody) {
     const uuid = this.getUuid(exception);
-    this.logger.error(
-      {
-        errorId: uuid,
-        /**
-         * It's important to use `err` as the key, pino (the logger we use) will
-         * log an empty object if the key is not `err`
-         *
-         * @see https://github.com/pinojs/pino/issues/819#issuecomment-611995074
-         */
-        err: exception,
-      },
-      `Unexpected exception thrown`,
-      'Exception'
-    );
+    this.logError(uuid, exception);
 
     return { ...responseBody, errorId: uuid };
   }
 
-  private buildBaseResponseBody(status: number, request: Request, message: string | object | Object) {
+  private buildBaseResponseBody(
+    status: number,
+    request: Request,
+    message: string | object | Object
+  ): ErrorResponseBody {
     return {
       statusCode: status,
       timestamp: new Date().toISOString(),
@@ -105,46 +83,37 @@ export class AllExceptionsFilter implements ExceptionFilter {
   private handleCommandValidation(exception: CommandValidationException): ResponseMetadata {
     const DO_NOT_TRACK_CLASSES = [ProcessBulkTriggerCommand.name];
 
+    let uuid: string | undefined;
     if (!DO_NOT_TRACK_CLASSES.includes(exception.className)) {
-      const uuid = this.getUuid(exception);
-      this.logger.error(
-        {
-          errorId: uuid,
-          /**
-           * It's important to use `err` as the key, pino (the logger we use) will
-           * log an empty object if the key is not `err`
-           *
-           * @see https://github.com/pinojs/pino/issues/819#issuecomment-611995074
-           */
-          err: exception,
-        },
-        `Unexpected exception thrown`,
-        'Exception'
-      );
-
-      // Debugging: Log the response being returned
-      const response = {
-        message: {
-          message: exception.message,
-          cause: exception.constraintsViolated,
-          uuid,
-        },
-        status: HttpStatus.BAD_REQUEST,
-      };
-
-      return response;
+      uuid = this.getUuid(exception);
+      this.logError(uuid, exception);
     }
 
-    // Debugging: Log the response for untracked classes
-    const response = {
+    return {
       message: {
         message: exception.message,
         cause: exception.constraintsViolated,
+        uuid,
       },
       status: HttpStatus.BAD_REQUEST,
     };
+  }
 
-    return response;
+  private logError(uuid: string, exception: unknown) {
+    this.logger.error(
+      {
+        errorId: uuid,
+        /**
+         * It's important to use `err` as the key, pino (the logger we use) will
+         * log an empty object if the key is not `err`
+         *
+         * @see https://github.com/pinojs/pino/issues/819#issuecomment-611995074
+         */
+        err: exception,
+      },
+      `Unexpected exception thrown`,
+      'Exception'
+    );
   }
 
   private getUuid(exception: unknown) {
@@ -186,4 +155,14 @@ function handleZod(exception: ZodError) {
   };
 
   return { status, message };
+}
+class ResponseMetadata {
+  status: number;
+  message: string | object | Object;
+}
+class ErrorResponseBody {
+  path: string;
+  message: string | object | Object;
+  statusCode: number;
+  timestamp: string;
 }
