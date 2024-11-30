@@ -159,7 +159,6 @@ export class PostProcessWorkflowUpdate {
     stepIssuesMap?: Record<string, StepIssues>,
     workflowIssues?: Record<keyof WorkflowResponseDto, RuntimeIssueDto[]>
   ): WorkflowInternalResponseDto {
-    const issues = workflowIssues as unknown as Record<string, RuntimeIssue[]>;
     const { steps } = workflow;
     for (const step of steps) {
       if (stepIssuesMap && stepIssuesMap[step._templateId]) {
@@ -169,6 +168,10 @@ export class PostProcessWorkflowUpdate {
       }
     }
 
-    return { ...workflow, steps, issues };
+    return {
+      ...workflow,
+      steps,
+      issues: workflowIssues as unknown as Record<string, RuntimeIssue[]>,
+    };
   }
 }
