@@ -82,7 +82,7 @@ export class WorkflowController {
   ): Promise<WorkflowResponseDto> {
     return this.upsertWorkflowUseCase.execute(
       UpsertWorkflowCommand.create({
-        workflowDto: createWorkflowDto,
+        upsertWorkflowData: createWorkflowDto,
         user,
       })
     );
@@ -113,7 +113,7 @@ export class WorkflowController {
   ): Promise<WorkflowResponseDto> {
     return await this.upsertWorkflowUseCase.execute(
       UpsertWorkflowCommand.create({
-        workflowDto: updateWorkflowDto,
+        upsertWorkflowData: updateWorkflowDto,
         user,
         identifierOrInternalId: workflowId,
       })

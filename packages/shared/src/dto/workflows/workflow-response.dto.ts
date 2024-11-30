@@ -1,6 +1,6 @@
 import type { JSONSchemaDto } from './json-schema-dto';
 import { Slug } from '../../types/utils';
-import { WorkflowCreationSourceEnum, StepTypeEnum, WorkflowOriginEnum, WorkflowPreferences } from '../../types';
+import { StepTypeEnum, WorkflowCreationSourceEnum, WorkflowOriginEnum, WorkflowPreferences } from '../../types';
 import { WorkflowStatusEnum } from './workflow-status-enum';
 import { StepContentIssueEnum, StepIssueEnum } from './step-content-issue.enum';
 
@@ -102,10 +102,10 @@ export type WorkflowResponseDto = WorkflowCommonsFields & {
   origin: WorkflowOriginEnum;
   preferences: PreferencesResponseDto;
   status: WorkflowStatusEnum;
-  issues?: Record<WorkflowCreateAndUpdateKeys, RuntimeIssue>;
+  issues?: Record<WorkflowCreateAndUpdateKeys, RuntimeIssueDto>;
 };
 export type WorkflowCreateAndUpdateKeys = keyof CreateWorkflowDto | keyof UpdateWorkflowDto;
-export class RuntimeIssue {
+export class RuntimeIssueDto {
   issueType: WorkflowIssueTypeEnum;
   variableName?: string;
   message: string;

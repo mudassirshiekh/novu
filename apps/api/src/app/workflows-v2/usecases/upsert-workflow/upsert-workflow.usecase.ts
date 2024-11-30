@@ -19,13 +19,13 @@ import {
   CreateWorkflowCommand,
   GetWorkflowByIdsCommand,
   GetWorkflowByIdsUseCase,
-  WorkflowInternalResponseDto,
+  Instrument,
+  InstrumentUsecase,
   NotificationStep,
   shortId,
   UpdateWorkflow,
   UpdateWorkflowCommand,
-  InstrumentUsecase,
-  Instrument,
+  WorkflowInternalResponseDto,
 } from '@novu/application-generic';
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { UpsertWorkflowCommand } from './upsert-workflow.command';
@@ -33,6 +33,7 @@ import { toResponseWorkflowDto } from '../../mappers/notification-template-mappe
 import { stepTypeToDefaultDashboardControlSchema } from '../../shared';
 import { PatchStepUsecase } from '../patch-step-data';
 import { PostProcessWorkflowUpdate } from '../post-process-workflow-update';
+import { UpsertWorkflowData } from './upsert-workflow.data';
 
 @Injectable()
 export class UpsertWorkflowUseCase {
@@ -107,10 +108,10 @@ export class UpsertWorkflowUseCase {
     existingWorkflow: NotificationTemplateEntity | null,
     command: UpsertWorkflowCommand
   ): Promise<WorkflowInternalResponseDto> {
-    if (existingWorkflow && isWorkflowUpdateDto(command.workflowDto, command.identifierOrInternalId)) {
+    if (existingWorkflow && isWorkflowUpdateDto(command.upsertWorkflowData, command.identifierOrInternalId)) {
       return await this.updateWorkflowUsecase.execute(
         UpdateWorkflowCommand.create(
-          this.convertCreateToUpdateCommand(command.workflowDto, command.user, existingWorkflow)
+          this.convertCreateToUpdateCommand(command.upsertWorkflowData, command.user, existingWorkflow)
         )
       );
     }
@@ -124,7 +125,7 @@ export class UpsertWorkflowUseCase {
   private async buildCreateWorkflowGenericCommand(command: UpsertWorkflowCommand): Promise<CreateWorkflowCommand> {
     const { user } = command;
     // It's safe to assume we're dealing with CreateWorkflowDto on the creation path
-    const workflowDto = command.workflowDto as CreateWorkflowDto;
+    const workflowDto = command.upsertWorkflowData as CreateWorkflowDto;
     const isWorkflowActive = workflowDto?.active ?? true;
     const notificationGroupId = await this.getNotificationGroup(command.user.environmentId);
 
@@ -146,8 +147,8 @@ export class UpsertWorkflowUseCase {
       active: isWorkflowActive,
       description: workflowDto.description || '',
       tags: workflowDto.tags || [],
-      userPreferences: command.workflowDto.preferences?.user ?? null,
-      defaultPreferences: command.workflowDto.preferences?.workflow ?? DEFAULT_WORKFLOW_PREFERENCES,
+      userPreferences: command.upsertWorkflowData.preferences?.user ?? null,
+      defaultPreferences: command.upsertWorkflowData.preferences?.workflow ?? DEFAULT_WORKFLOW_PREFERENCES,
       triggerIdentifier: slugify(workflowDto.name),
     };
   }
@@ -292,14 +293,13 @@ export class UpsertWorkflowUseCase {
     command: UpsertWorkflowCommand
   ): Promise<WorkflowInternalResponseDto> {
     for (const step of workflow.steps) {
-      const controlValues = this.findControlValueInRequest(step, command.workflowDto.steps);
+      const controlValues = this.findControlValueInRequest(step, command.upsertWorkflowData.steps);
       if (!controlValues) {
         continue;
       }
       await this.patchStepDataUsecase.execute({
         controlValues,
         identifierOrInternalId: workflow._id,
-        name: step.name,
         stepId: step._templateId,
         user: command.user,
       });
@@ -323,7 +323,7 @@ export class UpsertWorkflowUseCase {
 }
 
 function isWorkflowUpdateDto(
-  workflowDto: CreateWorkflowDto | UpdateWorkflowDto,
+  workflowDto: UpsertWorkflowData,
   id?: IdentifierOrInternalId
 ): workflowDto is UpdateWorkflowDto {
   return !!id;

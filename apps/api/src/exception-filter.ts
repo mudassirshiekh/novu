@@ -5,6 +5,12 @@ import { randomUUID } from 'node:crypto';
 import { captureException } from '@sentry/node';
 import { ZodError } from 'zod';
 import { InternalServerErrorException } from '@nestjs/common/exceptions/internal-server-error.exception';
+import { ProcessBulkTriggerCommand } from './app/events/usecases/process-bulk-trigger';
+
+class ResponseMetadata {
+  status: number;
+  message: string | object | Object;
+}
 
 export class AllExceptionsFilter implements ExceptionFilter {
   constructor(private readonly logger: PinoLogger) {}
@@ -70,7 +76,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
     };
   }
 
-  private getResponseMetadata(exception: unknown): { status: number; message: string | object | Object } {
+  private getResponseMetadata(exception: unknown): ResponseMetadata {
     let status: number;
     let message: string | object;
 
@@ -81,7 +87,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
       return handleZod(exception);
     }
     if (exception instanceof CommandValidationException) {
-      return handleCommandValidation(exception);
+      return this.handleCommandValidation(exception);
     }
 
     if (exception instanceof HttpException && !(exception instanceof InternalServerErrorException)) {
@@ -95,6 +101,50 @@ export class AllExceptionsFilter implements ExceptionFilter {
       status: HttpStatus.INTERNAL_SERVER_ERROR,
       message: `Internal server error, contact support and provide them with the errorId`,
     };
+  }
+  private handleCommandValidation(exception: CommandValidationException): ResponseMetadata {
+    const DO_NOT_TRACK_CLASSES = [ProcessBulkTriggerCommand.name];
+
+    if (!DO_NOT_TRACK_CLASSES.includes(exception.className)) {
+      const uuid = this.getUuid(exception);
+      this.logger.error(
+        {
+          errorId: uuid,
+          /**
+           * It's important to use `err` as the key, pino (the logger we use) will
+           * log an empty object if the key is not `err`
+           *
+           * @see https://github.com/pinojs/pino/issues/819#issuecomment-611995074
+           */
+          err: exception,
+        },
+        `Unexpected exception thrown`,
+        'Exception'
+      );
+
+      // Debugging: Log the response being returned
+      const response = {
+        message: {
+          message: exception.message,
+          cause: exception.constraintsViolated,
+          uuid,
+        },
+        status: HttpStatus.BAD_REQUEST,
+      };
+
+      return response;
+    }
+
+    // Debugging: Log the response for untracked classes
+    const response = {
+      message: {
+        message: exception.message,
+        cause: exception.constraintsViolated,
+      },
+      status: HttpStatus.BAD_REQUEST,
+    };
+
+    return response;
   }
 
   private getUuid(exception: unknown) {
@@ -136,24 +186,4 @@ function handleZod(exception: ZodError) {
   };
 
   return { status, message };
-}
-
-function handleCommandValidation(exception: CommandValidationException) {
-  const { mappedErrors } = exception;
-  const { message } = exception;
-
-  return { message: { message, cause: mappedErrors }, status: HttpStatus.BAD_REQUEST };
-}
-class MongoServerError {
-  code: number;
-  errmsg: string;
-  ok: number;
-  writeErrors?: {
-    index: number;
-    code: number;
-    errmsg: string;
-    op: any;
-  }[];
-  operationTime?: string;
-  clusterTime?: string;
 }

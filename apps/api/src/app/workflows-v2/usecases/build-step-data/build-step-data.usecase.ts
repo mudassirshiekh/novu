@@ -19,12 +19,7 @@ export class BuildStepDataUsecase {
     const workflow = await this.fetchWorkflow(command);
 
     const { currentStep } = await this.loadStepsFromDb(command, workflow);
-    if (
-      currentStep.name === undefined ||
-      !currentStep._templateId ||
-      currentStep.stepId === undefined ||
-      !currentStep.template?.type
-    ) {
+    if (!currentStep._templateId || currentStep.stepId === undefined || !currentStep.template?.type) {
       throw new InvalidStepException(currentStep);
     }
     const controlValues = await this.getValues(command, currentStep, workflow._id);
@@ -39,7 +34,7 @@ export class BuildStepDataUsecase {
         stepDatabaseId: currentStep._templateId,
         workflow,
       }), // Use the new use case to build variables schema
-      name: currentStep.name,
+      name: currentStep.name || 'MISSING STEP NAME - PLEASE UPDATE IMMEDIATELY',
       _id: currentStep._templateId,
       stepId: currentStep.stepId,
       type: currentStep.template?.type,
