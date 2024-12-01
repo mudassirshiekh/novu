@@ -67,6 +67,7 @@ With Novu, you can create custom workflows and define conditions for each channe
 - 👨‍💻 Community-driven
 
 ## 🚀 Getting Started
+## By Mudassir Alam
 
 There are two ways to get started:
 
